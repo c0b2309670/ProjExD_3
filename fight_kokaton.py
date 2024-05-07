@@ -118,9 +118,6 @@ class Bomb:
 
 class Beam:
     def __init__(self, bird: Bird):
-        """
-        あとでかく
-        """
         self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"), 0, 2.0)  # ビーム画像Surface
         self.rct: pg.Rect = self.img.get_rect()  # ビーム画像Rect
         self.rct.left = bird.rct.right  # ビームの左座標にこうかとんの右座標を設定する
@@ -135,18 +132,30 @@ class Beam:
         if check_bound(self.rct) == (True, True):
             self.rct.move_ip(self.vx, self.vy)
             screen.blit(self.img, self.rct)
+  
 
+class Score:
+    def __init__(self):
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.img = self.font.render("score", 0, (0,0,255))
+    def update(self, screen, score):
+        self.img = self.font.render(f"スコア:{score}", 0, (0,0,255))
+        screen.blit(self.img, [200, 700])
+
+    
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
+    score_img = Score()
     bird = Bird((900, 400))
     # bomb = Bomb((255, 0, 0), 10)
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     beam = None
     clock = pg.time.Clock()
     tmr = 0
+    score = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -166,12 +175,13 @@ def main():
         for i, bomb in enumerate(bombs):
             if beam is not None:
                 if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突したら
+                    score += 1
                     beam = None
                     bombs[i] = None
                     bird.change_img(6, screen)
                     pg.display.update()
         bombs = [bomb for bomb in bombs if bomb is not None]
-
+        score_img.update(screen, score)
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         for bomb in bombs:
